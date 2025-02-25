@@ -39,6 +39,9 @@ export function AuthForm() {
       router.refresh()
       router.push('/dashboard')
     }
+    else{
+      throw new Error(await res.json().then((data) => data.error))
+    }
     } catch (error: any) {
       toast({
         title: 'Error',

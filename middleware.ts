@@ -6,13 +6,15 @@ import type { NextRequest } from 'next/server'
 export async function middleware(req: NextRequest) {
 
   // const accessToken = req.cookies.get('access_token')
-  let res = NextResponse.next({  request: {
-    headers: req.headers,
-  }, })
+  let res = NextResponse.next({
+    request: {
+      headers: req.headers,
+    },
+  })
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {      
+    {
       cookies: {
         getAll() {
           return req.cookies.getAll()
@@ -34,8 +36,8 @@ export async function middleware(req: NextRequest) {
     data: { user }, error
   } = await supabase.auth.getUser()
 
-  if(error){
-    console.log('error',error)    
+  if (error) {
+    console.log('error', error)
   }
 
   // console.log('user',user)
@@ -48,6 +50,12 @@ export async function middleware(req: NextRequest) {
   ) {
     console.log('fsfsadfsd')
     return NextResponse.redirect(new URL('/signin', req.url))
+  }
+  else {
+    if (req.nextUrl.pathname.startsWith('/signin')) {
+      return NextResponse.redirect(new
+        URL('/dashboard', req.url))
+    }
   }
 
   return res

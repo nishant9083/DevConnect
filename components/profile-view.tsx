@@ -36,8 +36,11 @@ import {
   Save,
   X,
   User,
+  Users2Icon, HomeIcon, SearchIcon
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 const profile_data = {
   id: "1",
@@ -52,7 +55,7 @@ const profile_data = {
   collaboration_type: "hybrid",
 };
 
-export function ProfileView() {
+export function ProfileView({ userName }: { userName: string | null }) {
   const [profile, setProfile] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<any>(profile_data);
@@ -74,11 +77,17 @@ export function ProfileView() {
 
         if (!user) throw new Error("No user found");
 
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
+        const { data: profile } = !userName
+          ? await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", user.id)
+              .single()
+          : await supabase
+              .from("profiles")
+              .select("*")
+              .eq("username", userName)
+              .single();
         const isProfileComplete = profile && profile.username;
         if (editProfile && !isProfileComplete) {
           setIsEditing(true);
@@ -137,291 +146,297 @@ export function ProfileView() {
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader className="relative">
-          <div className="absolute right-6 top-6 space-x-2">
-            {isEditing ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedProfile(profile);
-                  }}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleSave}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Changes
-                </Button>
-              </>
-            ) : (
-              <Button size="sm" onClick={() => setIsEditing(true)}>
-                <Edit2 className="mr-2 h-4 w-4" />
-                Edit Profile
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage
-                src={`https://github.com/${profile?.github_username}.png`}
-                alt={profile?.full_name}
-              />
-              <AvatarFallback>
-                {profile?.full_name
-                  ?.split(" ")
-                  .map((n: any) => n[0])
-                  .join("")}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-2xl">
+      {profile ? (
+        <Card>
+          <CardHeader className="relative">
+            {(!userName || (userName && profile!.username == userName)) && (
+              <div className="absolute right-6 top-6 space-x-2">
                 {isEditing ? (
-                  <Input
-                    value={editedProfile?.full_name}
-                    onChange={(e) =>
-                      setEditedProfile({
-                        ...editedProfile,
-                        full_name: e.target.value,
-                      })
-                    }
-                    className="max-w-sm"
-                  />
-                ) : (
-                  profile?.full_name
-                )}
-              </CardTitle>
-              <CardDescription className="flex items-center gap-2">
-                {editProfile && !isUserName ? (
-                  <Input
-                    placeholder="username"
-                    value={editedProfile?.username}
-                    onChange={(e) =>
-                      setEditedProfile({
-                        ...editedProfile,
-                        username: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
                   <>
-                    <User2 className="h-4 w-4" />@{profile?.username}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditedProfile(profile);
+                      }}
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
+                    </Button>
+                    <Button size="sm" onClick={handleSave}>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Changes
+                    </Button>
                   </>
+                ) : (
+                  <Button size="sm" onClick={() => setIsEditing(true)}>
+                    <Edit2 className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Button>
                 )}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="">
-          <Tabs defaultValue="about" className="space-y-6">
-            <div className="flex justify-end">
-              <TabsList className="">
-                <TabsTrigger value="about">About</TabsTrigger>
-                <TabsTrigger value="skills">Skills & Experience</TabsTrigger>
-                <TabsTrigger value="preferences">Preferences</TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="about" className="space-y-6">
-              <div className="space-y-4">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label>Bio</Label>
-                    {isEditing ? (
-                      <Textarea
-                        value={editedProfile.bio}
-                        onChange={(e) =>
-                          setEditedProfile({
-                            ...editedProfile,
-                            bio: e.target.value,
-                          })
-                        }
-                        className="min-h-[100px]"
-                      />
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        {profile?.bio}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <Github className="h-4 w-4" />
-                        GitHub Username
-                      </Label>
-                      {isEditing ? (
-                        <Input
-                          value={editedProfile.github_username}
-                          onChange={(e) =>
-                            setEditedProfile({
-                              ...editedProfile,
-                              github_username: e.target.value,
-                            })
-                          }
-                        />
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          {profile?.github_username}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        Location
-                      </Label>
-                      {isEditing ? (
-                        <Input
-                          value={editedProfile.location}
-                          onChange={(e) =>
-                            setEditedProfile({
-                              ...editedProfile,
-                              location: e.target.value,
-                            })
-                          }
-                        />
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          {profile?.location}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
               </div>
-            </TabsContent>
-
-            <TabsContent value="skills" className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Code2 className="h-4 w-4" />
-                    Skills
-                  </Label>
+            )}
+            <div className="flex items-center gap-4">
+              <Avatar className="h-20 w-20">
+                <AvatarImage
+                  src={`https://github.com/${profile?.github_username}.png`}
+                  alt={profile?.full_name}
+                />
+                <AvatarFallback>
+                  {profile?.full_name
+                    ?.split(" ")
+                    .map((n: any) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle className="text-2xl">
                   {isEditing ? (
                     <Input
-                      value={editedProfile.skills.join(", ")}
+                      value={editedProfile?.full_name}
                       onChange={(e) =>
                         setEditedProfile({
                           ...editedProfile,
-                          skills: e.target.value
-                            .split(",")
-                            .map((s) => s.trim()),
+                          full_name: e.target.value,
                         })
                       }
-                      placeholder="JavaScript, React, Node.js"
+                      className="max-w-sm"
                     />
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {profile?.skills.map((skill: any) => (
-                        <Badge key={skill} variant="secondary">
-                          {skill}
-                        </Badge>
-                      ))}
+                    profile?.full_name
+                  )}
+                </CardTitle>
+                <CardDescription className="flex items-center gap-2">
+                  {editProfile && !isUserName ? (
+                    <Input
+                      placeholder="username"
+                      value={editedProfile?.username}
+                      onChange={(e) =>
+                        setEditedProfile({
+                          ...editedProfile,
+                          username: e.target.value,
+                        })
+                      }
+                    />
+                  ) : (
+                    <>
+                      <User2 className="h-4 w-4" />@{profile?.username}
+                    </>
+                  )}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="">
+            <Tabs defaultValue="about" className="space-y-6">
+              <div className="flex justify-end">
+                <TabsList className="">
+                  <TabsTrigger value="about">About</TabsTrigger>
+                  <TabsTrigger value="skills">Skills & Experience</TabsTrigger>
+                  <TabsTrigger value="preferences">Preferences</TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="about" className="space-y-6">
+                <div className="space-y-4">
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label>Bio</Label>
+                      {isEditing ? (
+                        <Textarea
+                          value={editedProfile.bio}
+                          onChange={(e) =>
+                            setEditedProfile({
+                              ...editedProfile,
+                              bio: e.target.value,
+                            })
+                          }
+                          className="min-h-[100px]"
+                        />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          {profile?.bio}
+                        </p>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    Experience Level
-                  </Label>
-                  {isEditing ? (
-                    <Select
-                      value={editedProfile.experience_level}
-                      onValueChange={(value) =>
-                        setEditedProfile({
-                          ...editedProfile,
-                          experience_level: value,
-                        })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select experience level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">
-                          Intermediate
-                        </SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Badge variant="outline" className="capitalize">
-                      {profile?.experience_level}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <Github className="h-4 w-4" />
+                          GitHub Username
+                        </Label>
+                        {isEditing ? (
+                          <Input
+                            value={editedProfile.github_username}
+                            onChange={(e) =>
+                              setEditedProfile({
+                                ...editedProfile,
+                                github_username: e.target.value,
+                              })
+                            }
+                          />
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            {profile?.github_username}
+                          </p>
+                        )}
+                      </div>
 
-            <TabsContent value="preferences" className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <Label>Available for Mentoring</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Let others know you're open to mentoring
-                    </p>
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Location
+                        </Label>
+                        {isEditing ? (
+                          <Input
+                            value={editedProfile.location}
+                            onChange={(e) =>
+                              setEditedProfile({
+                                ...editedProfile,
+                                location: e.target.value,
+                              })
+                            }
+                          />
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            {profile?.location}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <Switch
-                    checked={
-                      isEditing
-                        ? editedProfile.available_for_mentoring
-                        : profile?.available_for_mentoring
-                    }
-                    onCheckedChange={(checked) =>
-                      isEditing &&
-                      setEditedProfile({
-                        ...editedProfile,
-                        available_for_mentoring: checked,
-                      })
-                    }
-                    disabled={!isEditing}
-                  />
                 </div>
+              </TabsContent>
 
-                <div className="space-y-2">
-                  <Label>Preferred Collaboration Type</Label>
-                  {isEditing ? (
-                    <Select
-                      value={editedProfile.collaboration_type}
-                      onValueChange={(value) =>
+              <TabsContent value="skills" className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Code2 className="h-4 w-4" />
+                      Skills
+                    </Label>
+                    {isEditing ? (
+                      <Input
+                        value={editedProfile.skills.join(", ")}
+                        onChange={(e) =>
+                          setEditedProfile({
+                            ...editedProfile,
+                            skills: e.target.value
+                              .split(",")
+                              .map((s) => s.trim()),
+                          })
+                        }
+                        placeholder="JavaScript, React, Node.js"
+                      />
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {profile?.skills.map((skill: any) => (
+                          <Badge key={skill} variant="secondary">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4" />
+                      Experience Level
+                    </Label>
+                    {isEditing ? (
+                      <Select
+                        value={editedProfile.experience_level}
+                        onValueChange={(value) =>
+                          setEditedProfile({
+                            ...editedProfile,
+                            experience_level: value,
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select experience level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner">Beginner</SelectItem>
+                          <SelectItem value="intermediate">
+                            Intermediate
+                          </SelectItem>
+                          <SelectItem value="advanced">Advanced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge variant="outline" className="capitalize">
+                        {profile?.experience_level}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="preferences" className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <Label>Available for Mentoring</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Let others know you're open to mentoring
+                      </p>
+                    </div>
+                    <Switch
+                      checked={
+                        isEditing
+                          ? editedProfile.available_for_mentoring
+                          : profile?.available_for_mentoring
+                      }
+                      onCheckedChange={(checked) =>
+                        isEditing &&
                         setEditedProfile({
                           ...editedProfile,
-                          collaboration_type: value,
+                          available_for_mentoring: checked,
                         })
                       }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select collaboration type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="in-person">In Person</SelectItem>
-                        <SelectItem value="remote">Remote</SelectItem>
-                        <SelectItem value="hybrid">Hybrid</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Badge variant="outline" className="capitalize">
-                      {profile?.collaboration_type}
-                    </Badge>
-                  )}
+                      disabled={!isEditing}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Preferred Collaboration Type</Label>
+                    {isEditing ? (
+                      <Select
+                        value={editedProfile.collaboration_type}
+                        onValueChange={(value) =>
+                          setEditedProfile({
+                            ...editedProfile,
+                            collaboration_type: value,
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select collaboration type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="in-person">In Person</SelectItem>
+                          <SelectItem value="remote">Remote</SelectItem>
+                          <SelectItem value="hybrid">Hybrid</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge variant="outline" className="capitalize">
+                        {profile?.collaboration_type}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      ) : (
+        <ProfileNotFound />
+      )}
     </div>
   );
 }
@@ -452,4 +467,103 @@ function ProfileSkeleton() {
       </CardContent>
     </Card>
   );
+}
+
+
+
+function ProfileNotFound() {
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  }
+
+  return (
+    <motion.div 
+      className="min-h-[80vh] flex flex-col items-center justify-center p-4"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="max-w-md mx-auto text-center">
+        {/* Animated Icon */}
+        <motion.div
+          className="mb-8"
+          animate={{
+            scale: [1, 1.1, 1],
+            rotate: [0, 5, -5, 0]
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <div className="relative inline-block">
+            <Users2Icon className="h-24 w-24 text-primary/20" />
+            <Users2Icon className="h-24 w-24 text-primary absolute top-0 left-0 opacity-50" />
+          </div>
+        </motion.div>
+
+        {/* Main Content */}
+        <motion.div variants={itemVariants} className="space-y-4">
+          <h1 className="text-4xl font-bold tracking-tight">
+            Profile Not Found
+          </h1>
+          
+          <p className="text-xl text-muted-foreground">
+            We couldn't find the developer you're looking for.
+          </p>
+
+          <div className="bg-muted/50 rounded-lg p-6 space-y-2 text-sm text-muted-foreground">
+            <p>This could be because:</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>The username might be incorrect</li>
+              <li>The profile has been deleted</li>
+              <li>The developer hasn't created their profile yet</li>
+            </ul>
+          </div>
+        </motion.div>
+
+        {/* Action Buttons */}
+        <motion.div 
+          variants={itemVariants}
+          className="flex flex-col sm:flex-row gap-4 justify-center mt-8"
+        >
+          <Button asChild size="lg">
+            <Link href="/">
+              <HomeIcon className="mr-2 h-4 w-4" />
+              Return Home
+            </Link>
+          </Button>
+          
+          <Button asChild variant="outline" size="lg">
+            <Link href="/developers">
+              <SearchIcon className="mr-2 h-4 w-4" />
+              Find Developers
+            </Link>
+          </Button>
+        </motion.div>
+
+        {/* Additional Help */}
+        <motion.p 
+          variants={itemVariants}
+          className="mt-8 text-sm text-muted-foreground"
+        >
+          Need help? <Link href="/contact" className="text-primary hover:underline">Contact Support</Link>
+        </motion.p>
+      </div>
+    </motion.div>
+  )
 }

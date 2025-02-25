@@ -1,8 +1,9 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  // Remove output: 'export' as it's incompatible with middleware and server components
+import type { NextConfig } from 'next'
+const nextConfig: NextConfig = {  
   experimental: {
-    serverActions: true, // Enable the server actions feature
+    serverActions: {      
+      
+    }, // Enable the server actions feature
   },
   eslint: {
     ignoreDuringBuilds: true,

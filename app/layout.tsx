@@ -22,7 +22,7 @@ export default function RootLayout({
         <Providers>
           <div className="flex items-center min-h-screen flex-col">
             <Header />
-            <main className="w-full m-8">
+            <main className="w-full">
               {children}
             </main>
             <Footer />

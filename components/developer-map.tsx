@@ -120,7 +120,7 @@ export function DeveloperMap() {
     <div className="space-y-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {developers.map((developer, index) => (
         <Card
-          key={developer.id}
+          key={index}
           ref={developers.length === index + 1 ? lastDeveloperElementRef : null}
           className="group transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
         >

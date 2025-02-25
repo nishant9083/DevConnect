@@ -1,107 +1,177 @@
 import { Metadata } from 'next'
+import { createClient } from '@/utils/supabase/server'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CalendarIcon, MapPinIcon, UsersIcon, ExternalLinkIcon } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CalendarIcon, MapPinIcon, UsersIcon, PlusIcon, SearchIcon, FilterIcon } from 'lucide-react'
+import Link from 'next/link'
+import { format } from 'date-fns'
+import { EventMap } from '@/components/event-map'
 
 export const metadata: Metadata = {
   title: 'Events - DevConnect',
-  description: 'Tech events and meetups in your area',
+  description: 'Tech events and meetups in your area'
 }
 
-// Mock data - In production, this would come from your database
-const events = [
-  {
-    id: 1,
-    title: 'React Meetup',
-    description: 'Monthly meetup for React developers to share knowledge and network',
-    date: '2025-03-15T18:00:00',
-    location: 'Tech Hub Downtown',
-    attendees: 45,
-    tags: ['React', 'JavaScript', 'Web Development'],
-    url: '#',
-  },
-  {
-    id: 2,
-    title: 'Full Stack Workshop',
-    description: 'Hands-on workshop covering modern full-stack development',
-    date: '2025-03-20T09:00:00',
-    location: 'Innovation Center',
-    attendees: 30,
-    tags: ['Node.js', 'React', 'PostgreSQL'],
-    url: '#',
-  },
-  {
-    id: 3,
-    title: 'Tech Career Fair',
-    description: 'Connect with top tech companies and explore job opportunities',
-    date: '2025-03-25T10:00:00',
-    location: 'Convention Center',
-    attendees: 200,
-    tags: ['Career', 'Networking', 'Jobs'],
-    url: '#',
-  },
-]
+export default async function EventsPage({
+  searchParams,
+}: {
+  searchParams: any
+}) {
+  const supabase = await createClient()
+  const {category, search} = await searchParams;
 
-export default function EventsPage() {
+  let query = supabase
+    .from('events')
+    .select(`
+      *,
+      organizer:organizer_id(
+        username,
+        full_name
+      )
+    `)
+    .eq('status', 'active')
+    .order('event_date', { ascending: true })
+
+  if (category) {
+    query = query.eq('category', category)
+  }
+
+  const { data: events } = await query
+
+  const filteredEvents = events?.filter(event => {
+    if (!search) return true
+    return (
+      event.title.toLowerCase().includes(search) ||
+      event.description.toLowerCase().includes(search) ||
+      event.location_name.toLowerCase().includes(search)
+    )
+  })
+
+  const { data: categories } = await supabase
+    .from('events')
+    .select('category')
+    .not('category', 'is', null)
+    .order('category')
+
+  const uniqueCategories = Array.from(
+    new Set(categories?.map(item => item.category))
+  )
+
   return (
-    <div className="container py-8">
+    <div className="m-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Tech Events</h1>
-        <p className="text-muted-foreground">
-          Discover tech events and meetups in your area
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Tech Events</h1>
+            <p className="text-muted-foreground">
+              Discover tech events and meetups in your area
+            </p>
+          </div>
+          <Button asChild>
+            <Link href="/events/create">
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Event
+            </Link>
+          </Button>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search events..."
+              className="pl-9"
+              defaultValue={search}
+            />
+          </div>
+          <Select defaultValue="All">
+            <SelectTrigger>
+              <FilterIcon className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={uniqueCategories[0]}>All Categories</SelectItem>
+              {uniqueCategories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
+      {/* <div className="mb-8">
+        <EventMap
+          center={{ lat: 51.505, lng: -0.09 }}
+          markers={filteredEvents?.map(event => ({
+            position: { lat: event.latitude, lng: event.longitude },
+            popup: event.title,
+          }))}
+          height="400px"
+        />
+      </div> */}
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {events.map((event) => (
-          <Card key={event.id}>
+        {filteredEvents?.map((event) => (
+          <Card key={event.id} className="group overflow-hidden">
+            {event.cover_image_url && (
+              <div className="aspect-video w-full overflow-hidden">
+                <img
+                  src={event.cover_image_url}
+                  alt={event.title}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+            )}
+            
             <CardHeader>
-              <CardTitle>{event.title}</CardTitle>
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="line-clamp-2">{event.title}</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    by {event.organizer.full_name}
+                  </p>
+                </div>
+                <Badge>{event.category}</Badge>
+              </div>
             </CardHeader>
+            
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="line-clamp-2 text-sm text-muted-foreground">
                 {event.description}
               </p>
               
-              <div className="flex items-center gap-2 text-sm">
-                <CalendarIcon className="h-4 w-4" />
-                <span>
-                  {new Date(event.date).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm">
-                <MapPinIcon className="h-4 w-4" />
-                <span>{event.location}</span>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm">
-                <UsersIcon className="h-4 w-4" />
-                <span>{event.attendees} attending</span>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {event.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    {format(new Date(event.event_date), 'PPP')}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <MapPinIcon className="h-4 w-4 text-muted-foreground" />
+                  <span>{event.location_name}</span>
+                </div>
+                
+                {event.capacity && (
+                  <div className="flex items-center gap-2">
+                    <UsersIcon className="h-4 w-4 text-muted-foreground" />
+                    <span>Capacity: {event.capacity}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
+            
             <CardFooter>
-              <Button className="w-full" asChild>
-                <a href={event.url} target="_blank" rel="noopener noreferrer">
-                  Register
-                  <ExternalLinkIcon className="ml-2 h-4 w-4" />
-                </a>
+              <Button asChild className="w-full">
+                <Link href={`/events/${event.id}`}>
+                  View Details
+                </Link>
               </Button>
             </CardFooter>
           </Card>

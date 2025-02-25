@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SendIcon } from 'lucide-react'
+import { set } from 'date-fns'
 
 interface Profile {
   id: string
@@ -39,6 +40,7 @@ export function MessageList({
   const [newMessage, setNewMessage] = useState('')
   const [activeChat, setActiveChat] = useState<Profile | null>(selectedUser)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [activeTab, setActiveTab] = useState('messages')  
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -149,20 +151,20 @@ export function MessageList({
 
   return (
     <Card className="h-[calc(100vh-rem)]">
-      <Tabs defaultValue="messages" className="h-full">
+      <Tabs defaultValue={activeTab} className="h-full" value={activeTab}>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Messages</CardTitle>
+            <CardTitle className='hidden sm:block'>Messages</CardTitle>
             <TabsList>
-              <TabsTrigger value="messages">Messages</TabsTrigger>
-              <TabsTrigger value="contacts">Contacts</TabsTrigger>
+              <TabsTrigger className='cursor-pointer' onClick={()=>setActiveTab('messages')} value="messages">Messages</TabsTrigger>
+              <TabsTrigger className='cursor-pointer' value="contacts" onClick={()=>setActiveTab('contacts')}>Contacts</TabsTrigger>
             </TabsList>
           </div>
         </CardHeader>
-        <CardContent className="flex h-[calc(100%-5rem)] gap-4 p-0">
+        <CardContent className="flex h-[calc(100vh-10rem)] gap-4 p-0">
           <TabsContent value="messages" className="h-full w-full">
             <div className="flex h-full">
-              <div className="w-64 border-r">
+              <div className="w-64 border-r hidden sm:block">
                 <ScrollArea className="h-full">
                   {conversations.map((user) => (
                     <button
@@ -232,7 +234,7 @@ export function MessageList({
                             </div>
                           )
                         })}
-                        <div ref={messagesEndRef} />
+                        <div />
                       </div>
                     </ScrollArea>
 
@@ -282,7 +284,10 @@ export function MessageList({
                   <CardContent>
                     <Button
                       className="w-full"
-                      onClick={() => setActiveChat(user)}
+                      onClick={() => {
+                        setActiveTab('messages')
+                        setActiveChat(user)
+                      }}
                     >
                       Send Message
                     </Button>

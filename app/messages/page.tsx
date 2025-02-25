@@ -37,7 +37,7 @@ export default async function MessagesPage({
 
   return (
     <div className="p-8 ">
-      <div className="mb-8">
+      <div className="mb-8 sm:hidden">
         <h1 className="text-3xl font-bold">Messages</h1>
         <p className="text-muted-foreground">
           Chat with other developers
