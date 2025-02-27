@@ -9,6 +9,8 @@ import { CalendarIcon, MapPinIcon, UsersIcon, PlusIcon, SearchIcon, FilterIcon }
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { EventMap } from '@/components/event-map'
+import { CategoryFilter } from '@/components/filter'
+import { SearchFilter } from '@/components/search-filter'
 
 export const metadata: Metadata = {
   title: 'Events - DevConnect',
@@ -79,28 +81,11 @@ export default async function EventsPage({
         </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="relative">
-            <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search events..."
-              className="pl-9"
-              defaultValue={search}
-            />
-          </div>
-          <Select defaultValue="All">
-            <SelectTrigger>
-              <FilterIcon className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={uniqueCategories[0]}>All Categories</SelectItem>
-              {uniqueCategories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <SearchFilter defaultValue={search} />
+          <CategoryFilter 
+            categories={uniqueCategories} 
+            defaultValue={category || "All"} 
+          />
         </div>
       </div>
 
@@ -131,7 +116,7 @@ export default async function EventsPage({
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                  <CardTitle className="line-clamp-2">{event.title}</CardTitle>
+                  <CardTitle className="line-clamp-2 overflow-ellipsis">{event.title}</CardTitle>
                   <p className="text-sm text-muted-foreground">
                     by {event.organizer.full_name}
                   </p>

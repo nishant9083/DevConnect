@@ -10,14 +10,14 @@ export default function DashboardLoading() {
         {/* Main Content */}
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {[1, 2, 3].map((i) => (
               <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-5 w-1/2" />
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-4 w-24" />
                 </CardHeader>
                 <CardContent>
-                  <Skeleton className="h-8 w-[120px]" />
-                  <Skeleton className="mt-4 h-4 w-full" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="mt-2 h-3 w-32" />
                 </CardContent>
               </Card>
             ))}
@@ -25,12 +25,10 @@ export default function DashboardLoading() {
 
           <Card>
             <CardHeader>
-              <Skeleton className="h-6 w-[200px]" />
+              <Skeleton className="h-6 w-32" />
             </CardHeader>
             <CardContent>
-              <div className="h-[200px]">
-                <Skeleton className="h-full w-full" />
-              </div>
+              <Skeleton className="h-[200px]" />
             </CardContent>
           </Card>
 
@@ -59,34 +57,24 @@ export default function DashboardLoading() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-5 w-[140px]" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-[160px]" />
-                    <Skeleton className="h-3 w-[100px]" />
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-5 w-28" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {[1, 2, 3].map((j) => (
+                  <div key={j} className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
                   </div>
-                </div>
-              ))}
-              <Skeleton className="mt-2 h-9 w-full" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-5 w-[120px]" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-9 w-full" />
-              ))}
-            </CardContent>
-          </Card>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>

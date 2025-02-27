@@ -16,16 +16,20 @@ import {
   MessageSquareIcon,
   CalendarIcon,
   Box,
+  Menu,
+  X,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Router from "next/router";
 import { useEffect, useState } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function Header() {
   const supabase = createClient();
   const router = Router;
   const [profile, setProfile] = useState<any>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -46,6 +50,23 @@ export function Header() {
     checkUser();
   });
 
+  const NavigationItems = () => (
+    <>
+      <Link href="/developers" className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md">
+        <MapIcon className="h-4 w-4" />
+        <span>Find Developers</span>
+      </Link>
+      <Link href="/messages" className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md">
+        <MessageSquareIcon className="h-4 w-4" />
+        <span>Messages</span>
+      </Link>
+      <Link href="/events" className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md">
+        <CalendarIcon className="h-4 w-4" />
+        <span>Events</span>
+      </Link>
+    </>
+  );
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4 sm:px-8">
@@ -54,7 +75,9 @@ export function Header() {
             <Users2Icon className="h-6 w-6" />
             <span className="font-bold">DevConnect</span>
           </Link>
-          <NavigationMenu className="hidden sm:block">
+          
+          {/* Desktop Navigation */}
+          <NavigationMenu className="hidden md:block">
             <NavigationMenuList>
               <NavigationMenuItem>
                 <Link href="/developers" legacyBehavior passHref>
@@ -83,8 +106,21 @@ export function Header() {
             </NavigationMenuList>
           </NavigationMenu>
         </div>
+
         <div className="flex items-center gap-2 sm:gap-4">
           <ModeToggle />
+
+          {/* Mobile Navigation */}
+          <Sheet>
+            <SheetTrigger className="md:hidden">
+              <Menu className="h-6 w-6" />
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[240px] sm:w-[300px]">
+              <div className="flex flex-col gap-4 py-4">
+                <NavigationItems />
+              </div>
+            </SheetContent>
+          </Sheet>
 
           {profile ? (
             <HoverCard>
